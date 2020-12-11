@@ -8,14 +8,16 @@ from Model.GAN import build_model
 
 input_csv_path      = "/Users/lucien/CMS/PyLooper-DrellYan/output/2020_12_11_make_csv_DYToLL_cfg/train.npy"
 energy_norm         = 100.
-latent_dim          = 4
+latent_dim          = 8
 activation          = 'relu'
-n_epoch             = 500
+n_epoch             = 1000
 batch_size          = 128
-print_per_point     = 10
-disc_neuron_list    = [16,16,16,]
-gen_neuron_list     = [16,16,16,]
-output_path         = "output/train_mlp_201211_v1/"
+print_per_point     = 100
+save_per_point      = 1000
+disc_neuron_list    = [128,256,512,512,256,128]
+gen_neuron_list     = [128,256,512,512,256,128]
+output_path         = "output/train_gan_201211_v2/"
+gen_model_name      = "saved_model.h5"
 
 arr = np.load(input_csv_path)
 
@@ -77,3 +79,5 @@ for i_epoch in range(n_epoch):
             os.path.join(output_path,"loss.png"),
             log_scale=True,
             )
+    batch_trainer.save_weights(generator,os.path.join(output_path,gen_model_name),n_per_point=save_per_point,)
+batch_trainer.save_weights(generator,os.path.join(output_path,gen_model_name),)
