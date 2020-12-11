@@ -1,0 +1,3 @@
+[submodule "KerasSimpleTrainer"]
+	path = KerasSimpleTrainer
+	url = git@github.com:lucien1011/KerasSimpleTrainer.git
