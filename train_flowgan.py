@@ -1,34 +1,26 @@
-import os
+import os,uproot_methods,math
 import numpy as np
 import tensorflow as tf
 
 from KerasSimpleTrainer.MiniBatchTrainer import MiniBatchTrainer
 
+from process_data import make_flowgan_data
 from Model.NormFlow import NormFlow,Discriminator
 
 # ____________________________________________________________ ||
-input_csv_path      = "/Users/lucien/CMS/PyLooper-DrellYan/output/2020_12_11_make_csv_DYToLL_cfg/train.npy"
-energy_norm         = 100.
-condition_norm      = 10.
+input_csv_path      = "data/train.npy"
 n_epoch             = 1000
 batch_size          = 128
 print_per_point     = 100
 save_per_point      = 1000
 n_flow              = 10
-latent_dim          = 6 
+latent_dim          = 5
 output_path         = "output/train_flowgan_201212_v1/"
 gen_model_name      = "saved_model.h5"
 
 # ____________________________________________________________ ||
 arr = np.load(input_csv_path)
-x_train = arr[:,:-1]
-x_train[:,0] /= energy_norm 
-x_train[:,3] /= energy_norm 
-condition_train = (arr[:,-1] - 90.) / condition_norm
-condition_train = np.expand_dims(condition_train,axis=1)
-
-n_reco = x_train.shape[1]
-n_param = condition_train.shape[1]
+x_train,condition_train,n_reco,n_param = make_flowgan_data(arr)
 
 # ____________________________________________________________ ||
 gen = NormFlow(n_reco,n_flow)

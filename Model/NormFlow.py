@@ -8,7 +8,7 @@ class NormFlow(tf.keras.Model):
         self.flow_length = flow_length
         self.activation = tf.keras.activations.tanh
 
-        #self.flow_layers = [PlanarFlowLayer(self.dim,self.activation) for _ in range(self.flow_length)]
+        self.flow_layers = [PlanarFlowLayer(self.dim,self.activation) for _ in range(self.flow_length)]
         self.dense_layers = [tf.keras.layers.Dense(32,activation='relu') for _ in range(5)]
         self.inter_layer = tf.keras.layers.Dense(2*self.dim,activation='linear')
         self.sampling_layer = NormalSampling(self.dim)
@@ -19,8 +19,8 @@ class NormFlow(tf.keras.Model):
             z = dl(z)
         z = self.inter_layer(z)
         z = self.sampling_layer(z)
-        #for fl in self.flow_layers:
-        #    z = fl(z)
+        for fl in self.flow_layers:
+            z = fl(z)
         return z
 
 class NormalSampling(tf.keras.layers.Layer):
