@@ -2,16 +2,16 @@ import os,uproot_methods,math
 import numpy as np
 
 def make_flowgan_data(arr):
-    energy_norm = 100.
+    energy_norm = 20.
     condition_norm = 10.
     
     arr_lep1_vec = uproot_methods.classes.TLorentzVector.PtEtaPhiMassLorentzVectorArray(arr[:,0],arr[:,1],arr[:,2],0.)
     arr_lep2_vec = uproot_methods.classes.TLorentzVector.PtEtaPhiMassLorentzVectorArray(arr[:,3],arr[:,4],arr[:,5],0.)
     arr_lep21_vec = arr_lep2_vec - arr_lep1_vec
 
-    arr[:,0] = arr[:,0] / energy_norm - 0.4
+    arr[:,0] = arr[:,0] / energy_norm - 2.
     arr[:,1] = arr[:,1] / 2.4
-    arr[:,3] = arr[:,3] / energy_norm - 0.4
+    arr[:,3] = arr[:,3] / energy_norm - 2.
     arr[:,4] = arr[:,4] / 2.4
         
     x_train = np.concatenate(
