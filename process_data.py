@@ -129,3 +129,64 @@ def make_ptregression_data(input_arr,mu=1.10,scale=0.1):
             )
 
     return x_orig,x_smear,smear_mll
+
+def make_daflow_data(input_arr,mu=1.5,scale=0.05):
+    energy_norm = 50.
+    angle_norm = 1.
+    
+    condition = (input_arr[:,-1] - 90.) 
+    arr0 = np.copy(input_arr[np.squeeze(np.abs(condition) < 1)])
+
+    arr0[:,0] = arr0[:,0] / energy_norm
+    arr0[:,1] = arr0[:,1] / angle_norm
+    arr0[:,2] = arr0[:,2] / angle_norm
+    arr0[:,3] = arr0[:,3] / energy_norm
+    arr0[:,4] = arr0[:,4] / angle_norm
+    arr0[:,5] = arr0[:,5] / angle_norm
+    dphi = np.abs(arr0[:,5] - arr0[:,2])
+        
+    x0 = np.concatenate(
+            [
+                np.expand_dims(arr0[:,0],axis=1),
+                np.expand_dims(arr0[:,1],axis=1),
+                np.expand_dims(arr0[:,3],axis=1),
+                np.expand_dims(arr0[:,4],axis=1),
+                np.expand_dims(dphi,axis=1),
+            ],
+            axis=1,
+            )
+
+    arr1 = np.copy(input_arr[np.squeeze(np.abs(condition) < 1)])
+    arr1[:,0] = arr1[:,0] / energy_norm
+    arr1[:,1] = arr1[:,1] / angle_norm
+    arr1[:,2] = arr1[:,2] / angle_norm
+    arr1[:,3] = arr1[:,3] / energy_norm
+    arr1[:,4] = arr1[:,4] / angle_norm
+    arr1[:,5] = arr1[:,5] / angle_norm
+
+    eps1 = K.random_normal(shape=(arr0.shape[0],1))
+    sf1 = mu + scale * eps1
+
+    eps2 = K.random_normal(shape=(arr0.shape[0],1))
+    sf2 = mu + scale * eps2
+
+    smear_pt1 = tf.math.multiply(np.expand_dims(arr1[:,0],axis=1),sf1) 
+    arr1[:,1] = arr1[:,1] / angle_norm
+    arr1[:,2] = arr1[:,2] / angle_norm
+    smear_pt2 = tf.math.multiply(np.expand_dims(arr1[:,3],axis=1),sf2) 
+    arr1[:,4] = arr1[:,4] / angle_norm
+    arr1[:,5] = arr1[:,5] / angle_norm
+    dphi = np.abs(arr1[:,5] - arr1[:,2])
+        
+    x1 = np.concatenate(
+            [
+                smear_pt1,
+                np.expand_dims(arr1[:,1],axis=1),
+                smear_pt2,
+                np.expand_dims(arr1[:,4],axis=1),
+                np.expand_dims(dphi,axis=1),
+            ],
+            axis=1,
+            )
+ 
+    return x0,x1
