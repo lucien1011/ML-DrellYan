@@ -190,3 +190,109 @@ def make_daflow_data(input_arr,mu=1.5,scale=0.05):
             )
  
     return x0,x1
+
+def make_conditional_flow_data(input_arr,mu1=0.0,mu2=0.0,scale1=0.10,scale2=0.10):
+    energy_norm = 10.
+    condition_norm = 0.5
+    angle_norm = 1.
+    
+    eps1 = K.random_normal(shape=(input_arr.shape[0],1))
+    sf1 = np.exp(mu1 + scale1 * eps1)
+
+    eps2 = K.random_normal(shape=(input_arr.shape[0],1))
+    sf2 = np.exp(mu2 + scale1 * eps2)
+
+    smear_pt1 = tf.math.multiply(np.expand_dims(input_arr[:,0],axis=1),sf1) 
+    smear_pt2 = tf.math.multiply(np.expand_dims(input_arr[:,3],axis=1),sf2)
+    pt1 = np.expand_dims(input_arr[:,0],axis=1)
+    eta1 = np.expand_dims(input_arr[:,1],axis=1)
+    phi1 = np.expand_dims(input_arr[:,2],axis=1)
+    pt2 = np.expand_dims(input_arr[:,3],axis=1)
+    eta2 = np.expand_dims(input_arr[:,4],axis=1)
+    phi2 = np.expand_dims(input_arr[:,5],axis=1)
+
+    orig_mll = np.sqrt(2 * np.multiply(
+            np.multiply(pt1,pt2),
+            np.cosh(eta1-eta2) - np.cos(phi1-phi2), 
+            ))
+
+    smear_mll = np.sqrt(2 * np.multiply(
+            np.multiply(smear_pt1,smear_pt2),
+            np.cosh(eta1-eta2) - np.cos(phi1-phi2), 
+            ))
+        
+    x = np.concatenate(
+            [
+                ( smear_pt1 - np.mean(pt1) ) / energy_norm,
+                ( smear_pt2 - np.mean(pt2) ) / energy_norm,
+                ( smear_mll - np.mean(orig_mll) ) / energy_norm,
+            ],
+            axis=1,
+            )
+    condition = np.concatenate(
+            [
+                sf1,
+                sf2,
+            ],
+            axis=1,
+            )
+ 
+    return x,condition
+
+def simuate_conditional_flow_data_mass(x,ms,batch_size=10,evt_size=1,energy_norm = 10.): 
+    idx_batch = np.random.randint(0, len(ms), batch_size)
+    idx_evt = np.random.randint(0, x.shape[1], evt_size)
+    x_batch = x[idx_batch]
+    x_batch = x_batch[:,idx_evt,:]
+
+    mll = np.sqrt(2 * np.multiply(
+            np.multiply(x_batch[:,:,0],x_batch[:,:,3]),
+            np.cosh(x_batch[:,:,1]-x_batch[:,:,4]) - np.cos(x_batch[:,:,2]-x_batch[:,:,5]), 
+            ))
+        
+    x = np.concatenate(
+            [
+                np.expand_dims(x_batch[:,:,0],axis=2) / energy_norm,
+                np.expand_dims(x_batch[:,:,3],axis=2) / energy_norm,
+                np.expand_dims(mll,axis=2) / energy_norm,
+            ],
+            axis=2,
+            )
+    x = np.reshape(x,(x.shape[0],x.shape[1]*x.shape[2]))
+    condition = ms[idx_batch] / energy_norm 
+ 
+    return x,condition
+
+def simulate_conditional_flow_data_ptscale(x_arr,pt1_mean=0.,pt2_mean=0.,energy_norm=10.,batch_size=512,event_size=2048,):
+
+    ncond = 2
+    sf1 = 2.*np.random.random_sample((batch_size,1))-1.
+    sf2 = 2.*np.random.random_sample((batch_size,1))-1.
+
+    cond_arr = np.concatenate([sf1,sf2],axis=1)
+    cond_arr = np.expand_dims(cond_arr,axis=1)
+    cond_arr = np.broadcast_to(cond_arr,(batch_size,event_size,ncond))
+    condition = np.reshape(cond_arr,(batch_size*event_size,ncond))
+    
+    x_orig = np.expand_dims(x_arr,axis=0)
+    x_orig = np.broadcast_to(x_orig,(batch_size,x_orig.shape[1],x_orig.shape[2]))
+    x_orig = np.reshape(x_orig,(batch_size*x_orig.shape[1],x_orig.shape[2]))
+
+    smear_pt1 = (1.+condition[:,0])*x_orig[:,0]
+    smear_pt2 = (1.+condition[:,1])*x_orig[:,3]
+
+    smear_mll = np.sqrt(2 * np.multiply(
+        np.multiply(smear_pt1,smear_pt2),
+        np.cosh(x_orig[:,1]-x_orig[:,4]) - np.cos(x_orig[:,2]-x_orig[:,5]), 
+        ))
+    
+    x = np.concatenate(
+            [
+                (np.expand_dims(smear_pt1,axis=1) - pt1_mean) / energy_norm,
+                (np.expand_dims(smear_pt2,axis=1) - pt2_mean) / energy_norm,
+                np.expand_dims(smear_mll-1.,axis=1) / energy_norm,
+            ],
+            axis=1,
+            )
+    
+    return x,condition
