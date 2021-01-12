@@ -77,3 +77,9 @@ class ConditionalRealNVP(tf.keras.Model):
         y, logdet = self(inputs)
         log_likelihood = self.distribution.log_prob(y+self.epsilon) + logdet
         return -tf.reduce_mean(log_likelihood)
+
+    def batch_log_loss(self, inputs):
+        x,condition = inputs
+        y, logdet = self(inputs)
+        log_likelihood = self.distribution.log_prob(y+self.epsilon) + logdet
+        return -log_likelihood

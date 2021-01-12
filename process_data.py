@@ -263,11 +263,17 @@ def simuate_conditional_flow_data_mass(x,ms,batch_size=10,evt_size=1,energy_norm
  
     return x,condition
 
-def simulate_conditional_flow_data_ptscale(x_arr,pt1_mean=0.,pt2_mean=0.,energy_norm=10.,batch_size=512,event_size=2048,):
+def simulate_conditional_flow_data_ptscale(x_arr,pt1_mean=0.,pt2_mean=0.,energy_norm=10.,batch_size=512,event_size=2048,sf1=None,sf2=None):
 
     ncond = 2
-    sf1 = 2.*np.random.random_sample((batch_size,1))-1.
-    sf2 = 2.*np.random.random_sample((batch_size,1))-1.
+    if not sf1:
+        sf1 = 2.*np.random.random_sample((batch_size,1))-1.
+    else:
+        sf1 = sf1 * np.ones((batch_size,1))
+    if not sf2:
+        sf2 = 2.*np.random.random_sample((batch_size,1))-1.
+    else:
+        sf2 = sf2 * np.ones((batch_size,1))
 
     cond_arr = np.concatenate([sf1,sf2],axis=1)
     cond_arr = np.expand_dims(cond_arr,axis=1)
