@@ -13,13 +13,13 @@ from Utils.mkdir_p import mkdir_p
 
 # ____________________________________________________________ ||
 input_csv_path      = "data/train.npy"
-n_epoch             = 2000
+n_epoch             = 4000
 batch_size          = 4
-event_size          = 4096
+event_size          = 2048
 print_per_point     = 5
 plot_per_point      = 5
 save_per_point      = 1000
-output_path         = "output/train_condrealnvp_210111_v1/"
+output_path         = "output/train_condrealnvp_210112_v1/"
 saved_model_name    = "saved_model.h5"
 
 plot_cfgs           = [
@@ -82,3 +82,5 @@ for i_epoch in range(n_epoch):
 
             ax[ip].legend(loc='best')
         fig.savefig(os.path.join(output_path,"plot"+str(i_epoch)+".png"))
+
+batch_trainer.save_weights(nf_model,os.path.join(output_path,saved_model_name),)
