@@ -3,6 +3,8 @@ import numpy as np
 import tensorflow as tf
 import tensorflow.keras.backend as K
 
+from Utils.ObjDict import ObjDict
+
 def normalizePhi(res):
     '''Computes delta phi, handling periodic limit conditions.'''
     while res > math.pi:
@@ -239,7 +241,31 @@ def make_conditional_flow_data(input_arr,mu1=0.0,mu2=0.0,scale1=0.10,scale2=0.10
  
     return x,condition
 
-def simuate_conditional_flow_data_mass(x,ms,batch_size=10,evt_size=1,energy_norm = 10.): 
+def preprocess_conditional_flow_data_mass(x,energy_norm=10.,condition_norm=5.,mll0=90.,m0=90.):
+    out = []
+    mass_arr = x[:,-1]
+    for m in np.unique(mass_arr):
+        idx_mass = x[:,-1] == m
+        
+        x_arr = np.copy(x[idx_mass])
+        
+        mll = np.sqrt(2 * np.multiply(np.multiply(x_arr[:,0],x_arr[:,3]),np.cosh(x_arr[:,1]-x_arr[:,4]) - np.cos(x_arr[:,2]-x_arr[:,5]),))
+
+        reco = np.concatenate(
+                [
+                    np.expand_dims(x_arr[:,0],axis=1) / energy_norm,
+                    np.expand_dims(x_arr[:,3],axis=1) / energy_norm,
+                    np.expand_dims(mll-mll0,axis=1) / condition_norm,
+                ],
+                axis=1,
+                )
+
+        condition = np.ones((x_arr.shape[0],1)) * (m-m0) / condition_norm
+        
+        out.append(ObjDict(x=reco,condition=condition))
+    return out
+
+def simuate_conditional_flow_data_mass(x,ms,batch_size=10,evt_size=1,energy_norm=10.): 
     idx_batch = np.random.randint(0, len(ms), batch_size)
     idx_evt = np.random.randint(0, x.shape[1], evt_size)
     x_batch = x[idx_batch]
