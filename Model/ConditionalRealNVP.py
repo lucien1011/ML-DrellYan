@@ -4,7 +4,7 @@ import tensorflow_probability as tfp
 from tensorflow.keras import regularizers
 
 hidden_dim = 64
-reg = 0.10
+reg = 0.20
 
 def ConditionalCoupling(input_shape,conditional_shape):
     input = tf.keras.layers.Input(shape=input_shape)
@@ -15,6 +15,7 @@ def ConditionalCoupling(input_shape,conditional_shape):
     t_out = concat_layer_0
     for n in [1,2,4,4,2,1]:
         t_out = tf.keras.layers.Dense(n*hidden_dim,activation='relu',kernel_regularizer=regularizers.l2(reg))(t_out)
+        #t_out = tf.keras.layers.BatchNormalization()(t_out)
         t_out = tf.keras.layers.Lambda(lambda x: tf.concat(x,axis=1))([t_out,condition,])
     t_out = tf.keras.layers.Dense(
             input_shape, activation="linear", kernel_regularizer=regularizers.l2(reg)
@@ -24,6 +25,7 @@ def ConditionalCoupling(input_shape,conditional_shape):
     for n in [1,2,4,4,2,1]:
         s_out = tf.keras.layers.Dense(n*hidden_dim,activation='relu',kernel_regularizer=regularizers.l2(reg))(s_out)
         s_out = tf.keras.layers.Lambda(lambda x: tf.concat(x,axis=1))([s_out,condition,])
+        #s_out = tf.keras.layers.BatchNormalization()(s_out)
     s_out = tf.keras.layers.Dense(
             input_shape, activation="linear", kernel_regularizer=regularizers.l2(reg)
             )(s_out)
