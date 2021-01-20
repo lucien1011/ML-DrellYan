@@ -115,6 +115,9 @@ def preprocess_conditional_flow_data_cww(x,energy_norm=10.,):
 
         condition = np.ones((x_arr.shape[0],1)) * param
         
-        out.append(ObjDict(x=reco,condition=condition))
-    return out
+        if param != -1.:
+            out.append(ObjDict(x=reco,condition=condition,param=param))
+        else:
+            bkgObj = ObjDict(x=reco,condition=condition,param=param)
+    return out,bkgObj
 
