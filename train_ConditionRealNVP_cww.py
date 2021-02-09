@@ -16,13 +16,13 @@ from Utils.mkdir_p import mkdir_p
 
 # ____________________________________________________________ ||
 input_csv_path      = "data/train_cww.npy"
-n_epoch             = 5000
+n_epoch             = 4000
 batch_size          = 1
-event_size          = 4096
+event_size          = 8192
 print_per_point     = 100
 plot_per_point      = 50
 save_per_point      = 100
-output_path         = "output/train_condrealnvp_cww_210118_v1/"
+output_path         = "output/train_condrealnvp_cww_210208_v1/"
 saved_model_name    = "saved_model.h5"
 
 plot_cfgs           = [
@@ -35,18 +35,18 @@ plot_cfgs           = [
         ]
 flow_linestyle      = ':'
 true_linestyle      = '-'
-plot_xdim           = 3
+plot_xdim           = 2
 plot_ydim           = 2
 
 # ____________________________________________________________ ||
 arr = np.load(input_csv_path)
-arr_list = preprocess_conditional_flow_data_cww(arr)
+arr_list,_ = preprocess_conditional_flow_data_cww(arr)
 
 ndim = 3
 ncond = 1
 
 # ____________________________________________________________ ||
-nf_model = ConditionalRealNVP(num_coupling_layers=5,dim=ndim,ncond=ncond)  
+nf_model = ConditionalRealNVP(num_coupling_layers=10,ndim=ndim,ncond=ncond)  
 
 # ____________________________________________________________ ||
 batch_trainer = MiniBatchTrainer()
@@ -66,6 +66,7 @@ for i_epoch in range(n_epoch):
     with tf.GradientTape() as tape:
         nf_loss = nf_model.log_loss([x_train,condition_train])
     grads = tape.gradient(nf_loss, nf_model.trainable_weights)
+    grads = [tf.clip_by_value(g,clip_value_min=-0.1,clip_value_max=0.1) for g in grads]
     nf_optimizer.apply_gradients(zip(grads, nf_model.trainable_weights))
     
     batch_trainer.add_loss("NF loss",nf_loss)

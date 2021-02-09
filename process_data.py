@@ -5,9 +5,11 @@ import tensorflow.keras.backend as K
 
 from Utils.ObjDict import ObjDict
 
-def preprocess_conditional_flow_data_mass(x,energy_norm=10.,condition_norm=5.,mll0=90.,m0=90.):
+def preprocess_conditional_flow_data_mass(x,energy_norm=5.,condition_norm=5.,mll0=90.,m0=90.):
     out = []
     mass_arr = x[:,-1]
+    x0_mean = np.mean(x[:,0])
+    x1_mean = np.mean(x[:,3])
     for m in np.unique(mass_arr):
         idx_mass = x[:,-1] == m
         
@@ -17,8 +19,8 @@ def preprocess_conditional_flow_data_mass(x,energy_norm=10.,condition_norm=5.,ml
 
         reco = np.concatenate(
                 [
-                    np.expand_dims(x_arr[:,0],axis=1) / energy_norm,
-                    np.expand_dims(x_arr[:,3],axis=1) / energy_norm,
+                    np.expand_dims(x_arr[:,0]-x0_mean,axis=1) / energy_norm,
+                    np.expand_dims(x_arr[:,3]-x1_mean,axis=1) / energy_norm,
                     np.expand_dims(mll-mll0,axis=1) / condition_norm,
                 ],
                 axis=1,
@@ -27,6 +29,7 @@ def preprocess_conditional_flow_data_mass(x,energy_norm=10.,condition_norm=5.,ml
         condition = np.ones((x_arr.shape[0],1)) * (m-m0) / condition_norm
         
         out.append(ObjDict(x=reco,condition=condition))
+
     return out
 
 def simuate_conditional_flow_data_mass(x,ms,batch_size=10,evt_size=1,energy_norm=10.): 
@@ -105,7 +108,7 @@ def preprocess_conditional_flow_data_cww(x,energy_norm=10.,):
                 [
                     np.expand_dims(x_arr[:,0]-125.,axis=1) / energy_norm,
                     np.expand_dims(x_arr[:,1]-90.,axis=1) / energy_norm,
-                    np.expand_dims(x_arr[:,2],axis=1) / energy_norm,
+                    np.expand_dims(x_arr[:,2]-17.5,axis=1) / energy_norm,
                     #np.expand_dims(x_arr[:,3],axis=1) / energy_norm,
                     #np.expand_dims(x_arr[:,5],axis=1) / energy_norm,
                     #np.expand_dims(x_arr[:,6],axis=1) / energy_norm,

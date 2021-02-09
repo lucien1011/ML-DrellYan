@@ -75,7 +75,7 @@ class RealNVP(tf.keras.Model):
         log_likelihood = self.distribution.log_prob(y+self.epsilon) + logdet
         return -log_likelihood
 
-def ConditionalCoupling(input_shape,conditional_shape,hidden_dim=16,reg=0.2,):
+def ConditionalCoupling(input_shape,conditional_shape,hidden_dim=128,reg=0.05,):
     input = tf.keras.layers.Input(shape=input_shape)
     condition = tf.keras.layers.Input(shape=conditional_shape)
 
@@ -84,8 +84,7 @@ def ConditionalCoupling(input_shape,conditional_shape,hidden_dim=16,reg=0.2,):
     t_out = concat_layer_0
     for n in [1,2,4,4,2,1]:
         t_out = tf.keras.layers.Dense(n*hidden_dim,activation='relu',kernel_regularizer=regularizers.l2(reg))(t_out)
-        #t_out = tf.keras.layers.BatchNormalization()(t_out)
-        t_out = tf.keras.layers.Lambda(lambda x: tf.concat(x,axis=1))([t_out,condition,])
+        #t_out = tf.keras.layers.Lambda(lambda x: tf.concat(x,axis=1))([t_out,condition,])
     t_out = tf.keras.layers.Dense(
             input_shape, activation="linear", kernel_regularizer=regularizers.l2(reg)
             )(t_out)
@@ -93,8 +92,7 @@ def ConditionalCoupling(input_shape,conditional_shape,hidden_dim=16,reg=0.2,):
     s_out = concat_layer_0
     for n in [1,2,4,4,2,1]:
         s_out = tf.keras.layers.Dense(n*hidden_dim,activation='relu',kernel_regularizer=regularizers.l2(reg))(s_out)
-        s_out = tf.keras.layers.Lambda(lambda x: tf.concat(x,axis=1))([s_out,condition,])
-        #s_out = tf.keras.layers.BatchNormalization()(s_out)
+        #s_out = tf.keras.layers.Lambda(lambda x: tf.concat(x,axis=1))([s_out,condition,])
     s_out = tf.keras.layers.Dense(
             input_shape, activation="linear", kernel_regularizer=regularizers.l2(reg)
             )(s_out)
@@ -132,12 +130,15 @@ class ConditionalRealNVP(tf.keras.Model):
                     + x_masked
                 )
             log_det_inv += gate * tf.reduce_sum(s, [1])
+        #print("s,log: ",gate,s[:10],log_det_inv[:10])
         return x, log_det_inv
 
     def log_loss(self, inputs):
         x,condition = inputs
         y, logdet = self(inputs)
         log_likelihood = self.distribution.log_prob(y+self.epsilon) + logdet
+        #print("y: ",y[:10])
+        #print("total log: ",self.distribution.log_prob(y+self.epsilon)[:10],logdet[:10],log_likelihood[:10])
         return -tf.reduce_mean(log_likelihood)
 
     def batch_log_loss(self, inputs):
