@@ -18,11 +18,11 @@ from Utils.mkdir_p import mkdir_p
 input_csv_path      = "data/train_cww.npy"
 n_epoch             = 4000
 batch_size          = 1
-event_size          = 8192
-print_per_point     = 100
+event_size          = 1000
+print_per_point     = 50
 plot_per_point      = 50
-save_per_point      = 100
-output_path         = "output/train_condrealnvp_cww_210208_v1/"
+save_per_point      = 50
+output_path         = "output/train_condrealnvp_cww_210210_v1/"
 saved_model_name    = "saved_model.h5"
 
 plot_cfgs           = [
